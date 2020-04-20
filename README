@@ -1,5 +1,0 @@
-This Project is built to scrape Johnnyseeds.com for information on their seeds.
-
-Run spider with `scrapy runspider scraper.py`
-
-To activate python Virtual Environment: `source my_env/bin/activate`
