@@ -10,7 +10,7 @@ class JohnnySeedsSeedsFromCategoriesSpider(scrapy.Spider):
     with open('json-output/categories.json') as json_file:
         data = json.load(json_file)
         for item in data:
-            link = item['link']
+            link = item['link'] + "?start=0&sz=18"
             start_urls.append(link)
 
     custom_settings = {
@@ -37,3 +37,12 @@ class JohnnySeedsSeedsFromCategoriesSpider(scrapy.Spider):
                 'image': seed.css(IMAGE_SELECTOR).get(),
                 'link': BASE_URL + seed.css(LINK_SELECTOR).get(),
             }
+
+        NEXT_PAGE_SELECTOR = '.c-pagination a.c-pagination__link ::attr(href)'
+        next_page_list = response.css(NEXT_PAGE_SELECTOR).getall()
+        if next_page_list:
+            for x in next_page_list:
+                yield scrapy.Request(
+                    response.urljoin(x),
+                    callback=self.parse
+                )

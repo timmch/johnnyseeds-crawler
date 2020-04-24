@@ -11,7 +11,7 @@ class JohnnySeedsSeedsDetailedSeeds(scrapy.Spider):
         BASE_URL = 'https://www.johnnyseeds.com/'
         data = json.load(json_file)
         for item in data:
-            link = BASE_URL + item['link']
+            link = item['link']
             start_urls.append(link)
 
     custom_settings = {
@@ -25,15 +25,24 @@ class JohnnySeedsSeedsDetailedSeeds(scrapy.Spider):
         SECONDARY_NAME_SELECTOR = '.c-product-header__subheading ::text'
         DESCRIPTION_SELECTOR = '.c-tile__description ::text'
         IMAGE_SELECTOR = 'img.c-image-gallery__main-image ::attr(src)'
-        LINK_SELECTOR = 'a.thumb-link ::attr(href)'
 
-        # item = response.meta['item']
-        # item['results'] = []
-        for seed in response.css(SEED_SELECTOR):
-            yield {
-                'name': seed.css(NAME_SELECTOR).get().replace('\n', ''),
-                'secondary_name': seed.css(SECONDARY_NAME_SELECTOR).get().replace('\n', ''),
-                'description': seed.css(DESCRIPTION_SELECTOR).get(),
-                'image': seed.css(IMAGE_SELECTOR).get(),
-                'link': seed.css(LINK_SELECTOR).get(),
-            }
+        factTerms = response.css('.c-facts .c-facts__term h3 ::text').getall()
+        factDefinitions = response.css(
+            '.c-facts .c-facts__definition h4 ::text').getall()
+
+        daysToMaturity = ""
+
+        for num, factHeader in enumerate(factTerms, start=0):
+            if "maturity" in factHeader.lower():
+                # Fix a mispelling I found
+                daysToMaturity = factDefinitions[num].replace("thrid", "third")
+                # Now parse the dates into something usable
+
+        yield {
+            'name': response.css(NAME_SELECTOR).get().replace('\n', ''),
+            'maturity': daysToMaturity,
+            'secondary_name': response.css(SECONDARY_NAME_SELECTOR).get().replace('\n', ''),
+            'description': response.css(DESCRIPTION_SELECTOR).get(),
+            'image': response.css(IMAGE_SELECTOR).get(),
+            'link': response.url
+        }
